@@ -131,11 +131,19 @@ function app_builder_get_address_books( $request ) {
 		}
 	}
 
+	$billing_address_names = $wc_address_book->get_address_names( $woo_address_book_customer_id, 'billing' );
+	$billing_name          = $wc_address_book->set_new_address_name( $billing_address_names, 'billing' );
+
+	$shipping_address_names = $wc_address_book->get_address_names( $woo_address_book_customer_id, 'shipping' );
+	$shipping_name          = $wc_address_book->set_new_address_name( $shipping_address_names, 'shipping' );
+
 	$result = [
 		'billing_enable'  => $billing_enable,
 		'shipping_enable' => $shipping_enable,
 		'billing'         => $billing,
 		'shipping'        => $shipping,
+		'new_billing_name'    => $billing_name,
+		'new_shipping_name'   => $shipping_name,
 	];
 
 	return new WP_REST_Response( $result );
