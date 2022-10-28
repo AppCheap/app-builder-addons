@@ -1,6 +1,6 @@
 # Ignore everything:
 *
-# Except for wordpress themes:
+# Except app builder addons plugin:
 !/app-builder-*/
 !/app-builder-*/*
 !/app-builder-*/*/*
