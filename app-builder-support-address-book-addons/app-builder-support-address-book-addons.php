@@ -194,6 +194,65 @@ function app_builder_make_primary_address_books( $request ) {
 	] );
 }
 
+/**
+ * Used for deleting addresses from the my-account page.
+ *
+ * @since 1.0.0
+ */
+function app_builder_delete_address_books( $request ) {
+	$wc_address_book = WC_Address_Book::get_instance();
+	$customer_id     = get_current_user_id();
+
+	if ( $customer_id == 0 ) {
+		return new WP_Error(
+			'no_current_login',
+			__( 'User not login.', "app-builder" ),
+			array(
+				'status' => 403,
+			)
+		);
+	}
+
+	if ( ! isset( $_POST['name'] ) ) {
+		return new WP_Error(
+			'no_name_provided',
+			__( 'No address passed.', "app-builder" ),
+			array(
+				'status' => 403,
+			)
+		);
+	}
+
+	$address_name  = sanitize_text_field( wp_unslash( $_POST['name'] ) );
+	$type          = $wc_address_book->get_address_type( $address_name );
+	$address_book  = $wc_address_book->get_address_book( $customer_id, $type );
+	$address_names = $wc_address_book->get_address_names( $customer_id, $type );
+
+	foreach ( $address_book as $name => $address ) {
+		if ( $address_name === $name ) {
+
+			// Remove address from address book.
+			$key = array_search( $name, $address_names, true );
+			if ( ( $key ) !== false ) {
+				unset( $address_names[ $key ] );
+			}
+
+			$wc_address_book->save_address_names( $customer_id, $address_names, $type );
+
+			// Remove specific address values.
+			foreach ( $address as $field => $value ) {
+				delete_user_meta( $customer_id, $field );
+			}
+
+			break;
+		}
+	}
+
+	return new WP_REST_Response( [
+		'success' => true,
+	] );
+}
+
 function app_builder_address_books_rest_init() {
 
 	$namespace = 'app-builder/v1';
@@ -206,8 +265,14 @@ function app_builder_address_books_rest_init() {
 	) );
 
 	register_rest_route( $namespace, $route . '/make-primary', array(
-		'methods'             => WP_REST_Server::EDITABLE,
+		'methods'             => WP_REST_Server::CREATABLE,
 		'callback'            => 'app_builder_make_primary_address_books',
+		'permission_callback' => '__return_true',
+	) );
+
+	register_rest_route( $namespace, $route . '/delete', array(
+		'methods'             => WP_REST_Server::CREATABLE,
+		'callback'            => 'app_builder_delete_address_books',
 		'permission_callback' => '__return_true',
 	) );
 }
