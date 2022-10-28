@@ -1,0 +1,4 @@
+# Ignore everything:
+*
+# Except for wordpress themes:
+!*/app-builder-support-address-book-addons/*
