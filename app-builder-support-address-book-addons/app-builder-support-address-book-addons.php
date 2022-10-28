@@ -55,11 +55,6 @@ function app_builder_get_address_books( $request ) {
 
 		if ( ! empty( $woo_address_book_billing_address ) ) {
 			foreach ( $woo_address_book_billing_address_book as $woo_address_book_name => $woo_address_book_fields ) {
-				// Prevent default billing from displaying here.
-				if ( 'billing' === $woo_address_book_name ) {
-					continue;
-				}
-
 				$woo_address_book_address = apply_filters(
 					'woocommerce_my_account_my_address_formatted_address',
 					array(
@@ -82,9 +77,12 @@ function app_builder_get_address_books( $request ) {
 					$billing[] = [
 						'book_name'    => $woo_address_book_name,
 						'book_address' => wp_kses( $woo_address_book_formatted_address, array( 'br' => array() ) ),
+						'data'         => $woo_address_book_address,
 					];
 				}
 			}
+		} else {
+			$billing_enable = false;
 		}
 
 	}
@@ -98,11 +96,6 @@ function app_builder_get_address_books( $request ) {
 		// Only display if primary addresses are set and not on an edit page.
 		if ( ! empty( $woo_address_book_shipping_address ) ) {
 			foreach ( $woo_address_book_shipping_address_book as $woo_address_book_name => $woo_address_book_fields ) {
-
-				// Prevent default shipping from displaying here.
-				if ( 'shipping' === $woo_address_book_name ) {
-					continue;
-				}
 
 				$woo_address_book_address           = apply_filters(
 					'woocommerce_my_account_my_address_formatted_address',
@@ -125,9 +118,12 @@ function app_builder_get_address_books( $request ) {
 					$shipping[] = [
 						'book_name'    => $woo_address_book_name,
 						'book_address' => wp_kses( $woo_address_book_formatted_address, array( 'br' => array() ) ),
+						'data'         => $woo_address_book_address,
 					];
 				}
 			}
+		} else {
+			$shipping_enable = false;
 		}
 	}
 
@@ -138,12 +134,12 @@ function app_builder_get_address_books( $request ) {
 	$shipping_name          = $wc_address_book->set_new_address_name( $shipping_address_names, 'shipping' );
 
 	$result = [
-		'billing_enable'  => $billing_enable,
-		'shipping_enable' => $shipping_enable,
-		'billing'         => $billing,
-		'shipping'        => $shipping,
-		'new_billing_name'    => $billing_name,
-		'new_shipping_name'   => $shipping_name,
+		'billing_enable'    => $billing_enable,
+		'shipping_enable'   => $shipping_enable,
+		'billing'           => $billing,
+		'shipping'          => $shipping,
+		'new_billing_name'  => $billing_name,
+		'new_shipping_name' => $shipping_name,
 	];
 
 	return new WP_REST_Response( $result );
