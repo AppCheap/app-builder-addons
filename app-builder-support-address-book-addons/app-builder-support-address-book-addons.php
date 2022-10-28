@@ -28,9 +28,19 @@ add_action( 'plugins_loaded', 'app_builder_support_address_book_addons_text_doma
  */
 function app_builder_get_address_books( $request ) {
 
-	$wc_address_book = WC_Address_Book::get_instance();
+	$wc_address_book              = WC_Address_Book::get_instance();
+	$woo_address_book_customer_id = get_current_user_id();
 
-	$woo_address_book_customer_id           = get_current_user_id();
+	if ( $woo_address_book_customer_id == 0 ) {
+		return new WP_Error(
+			'no_current_login',
+			__( 'User not login.', "app-builder" ),
+			array(
+				'status' => 403,
+			)
+		);
+	}
+
 	$woo_address_book_billing_address_book  = $wc_address_book->get_address_book( $woo_address_book_customer_id, 'billing' );
 	$woo_address_book_shipping_address_book = $wc_address_book->get_address_book( $woo_address_book_customer_id, 'shipping' );
 
@@ -131,6 +141,59 @@ function app_builder_get_address_books( $request ) {
 	return new WP_REST_Response( $result );
 }
 
+/**
+ * Make primary address book
+ *
+ * @param $request
+ *
+ * @return WP_Error | WP_REST_Response
+ */
+function app_builder_make_primary_address_books( $request ) {
+	$wc_address_book = WC_Address_Book::get_instance();
+	$customer_id     = get_current_user_id();
+
+	if ( $customer_id == 0 ) {
+		return new WP_Error(
+			'no_current_login',
+			__( 'User not login.', "app-builder" ),
+			array(
+				'status' => 403,
+			)
+		);
+	}
+
+	if ( ! isset( $_POST['name'] ) ) {
+		return new WP_Error(
+			'no_name_provided',
+			__( 'No address passed.', "app-builder" ),
+			array(
+				'status' => 403,
+			)
+		);
+	}
+
+	$alt_address_name = sanitize_text_field( wp_unslash( $_POST['name'] ) );
+	$type             = $wc_address_book->get_address_type( $alt_address_name );
+	$address_book     = $wc_address_book->get_address_book( $customer_id, $type );
+
+	$primary_address_name = $type;
+
+	// Loop through and swap values between names.
+	foreach ( $address_book[ $primary_address_name ] as $field => $value ) {
+		$alt_field = preg_replace( '/^[^_]*_\s*/', $alt_address_name . '_', $field );
+		update_user_meta( $customer_id, $field, $address_book[ $alt_address_name ][ $alt_field ] );
+	}
+
+	foreach ( $address_book[ $alt_address_name ] as $field => $value ) {
+		$primary_field = preg_replace( '/^[^_]*_\s*/', $primary_address_name . '_', $field );
+		update_user_meta( $customer_id, $field, $address_book[ $primary_address_name ][ $primary_field ] );
+	}
+
+	return new WP_REST_Response( [
+		'success' => true,
+	] );
+}
+
 function app_builder_address_books_rest_init() {
 
 	$namespace = 'app-builder/v1';
@@ -139,6 +202,12 @@ function app_builder_address_books_rest_init() {
 	register_rest_route( $namespace, $route, array(
 		'methods'             => WP_REST_Server::READABLE,
 		'callback'            => 'app_builder_get_address_books',
+		'permission_callback' => '__return_true',
+	) );
+
+	register_rest_route( $namespace, $route . '/make-primary', array(
+		'methods'             => WP_REST_Server::EDITABLE,
+		'callback'            => 'app_builder_make_primary_address_books',
 		'permission_callback' => '__return_true',
 	) );
 }
