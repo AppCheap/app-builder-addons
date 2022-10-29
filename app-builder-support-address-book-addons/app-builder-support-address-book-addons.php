@@ -67,6 +67,8 @@ function app_builder_get_address_books( $request ) {
 						'state'      => get_user_meta( $woo_address_book_customer_id, $woo_address_book_name . '_state', true ),
 						'postcode'   => get_user_meta( $woo_address_book_customer_id, $woo_address_book_name . '_postcode', true ),
 						'country'    => get_user_meta( $woo_address_book_customer_id, $woo_address_book_name . '_country', true ),
+						'phone'      => get_user_meta( $woo_address_book_customer_id, $woo_address_book_name . '_phone', true ),
+						'email'      => get_user_meta( $woo_address_book_customer_id, $woo_address_book_name . '_email', true ),
 					),
 					$woo_address_book_customer_id,
 					$woo_address_book_name
