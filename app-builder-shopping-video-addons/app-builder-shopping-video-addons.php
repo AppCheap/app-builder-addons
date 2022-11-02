@@ -25,7 +25,7 @@ function app_builder_shopping_video_addons_text_domain() {
 	load_plugin_textdomain( APP_BUILDER_SHOPPING_VIDEO_ADDONS_TEXT_DOMAIN, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 }
 
-add_action( 'plugins_loaded', 'app_builder_shopping_video_addons_text_domain' );
+//add_action( 'plugins_loaded', 'app_builder_shopping_video_addons_text_domain' );
 
 /**
  * Add tab setting video
