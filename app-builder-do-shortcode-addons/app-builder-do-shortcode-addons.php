@@ -47,3 +47,45 @@ function app_builder_do_short_code_rest_init() {
 }
 
 add_action( 'rest_api_init', 'app_builder_do_short_code_rest_init' );
+
+add_filter( 'app_builder_prepare_product_object', 'app_builder_do_short_code_addons_prepare_product_object', 999, 3 );
+function app_builder_do_short_code_addons_prepare_product_object( $data, $post, $request ) {
+
+	if ( ! isset( $data['id'] ) ) {
+		return $data;
+	}
+
+	if ( ! class_exists( '\WC_Smart_Coupons' ) ) {
+		return $data;
+	}
+
+	$shortcode = $data['acf']['coupoun_code'] ?? '';
+
+	if ( $shortcode == '' ) {
+		return $data;
+	}
+
+	$afc_fields = $data['afc_fields'] ?? [];
+	$html       = do_shortcode( $shortcode );
+
+	$afc_fields['coupoun_code_html'] = [
+		"key"    => uniqid(),
+		"label"  => "coupoun_code_html",
+		"name"   => "coupoun_code_html",
+		"prefix" => "acf",
+		"type"   => "html",
+		"value"  => $html,
+		"_name"  => "coupoun_code_html",
+		"_valid" => 1
+	];
+
+	$data['afc_fields'] = $afc_fields;
+
+	if ( isset( $data['acf'] ) ) {
+		$data['acf']['coupoun_code_html'] = $html;
+	} else {
+		$data['acf'] = [ 'coupoun_code_html' => $html ];
+	}
+
+	return $data;
+}

@@ -42,6 +42,12 @@ function app_builder_yith_woocommerce_points_and_rewards_addons_prepare_product_
 
 	$data['afc_fields'] = $afc_fields;
 
+	if ( isset( $data['acf'] ) ) {
+		$data['acf']['points'] = $message;
+	} else {
+		$data['acf'] = [ 'points' => $message ];
+	}
+
 	return $data;
 }
 
