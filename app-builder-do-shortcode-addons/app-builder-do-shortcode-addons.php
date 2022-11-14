@@ -66,7 +66,7 @@ function app_builder_do_short_code_addons_prepare_product_object( $data, $post, 
 	}
 
 	$afc_fields = $data['afc_fields'] ?? [];
-	$html       = do_shortcode( $shortcode );
+	$html       = '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body>' . do_shortcode( $shortcode ) . '</body></html>';
 
 	$afc_fields['coupoun_code_html'] = [
 		"key"    => uniqid(),
@@ -76,7 +76,8 @@ function app_builder_do_short_code_addons_prepare_product_object( $data, $post, 
 		"type"   => "html",
 		"value"  => $html,
 		"_name"  => "coupoun_code_html",
-		"_valid" => 1
+		"_valid" => 1,
+		"height" => 40,
 	];
 
 	$data['afc_fields'] = $afc_fields;
