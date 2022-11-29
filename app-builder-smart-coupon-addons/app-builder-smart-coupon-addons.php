@@ -156,7 +156,7 @@ function app_builder_smart_coupon_list( $request ) {
 		$args = array(
 			'coupon_object'      => $coupon,
 			'coupon_amount'      => $coupon_amount,
-			'amount_symbol'      => ( true === $is_percent ) ? '%' : get_woocommerce_currency_symbol(),
+			'amount_symbol'      => html_entity_decode(( true === $is_percent ) ? '%' : get_woocommerce_currency_symbol()),
 			'discount_type'      => wp_strip_all_tags( $coupon_type ),
 			'coupon_description' => ( ! empty( $coupon_description ) ) ? $coupon_description : wp_strip_all_tags( $wc_sc_display_coupons->generate_coupon_description( array( 'coupon_object' => $coupon ) ) ),
 			'coupon_code'        => $coupon_code,
