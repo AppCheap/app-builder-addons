@@ -170,7 +170,7 @@ function app_builder_smart_coupon_list( $request ) {
 			),
 			'classes'            => 'apply_coupons_credits',
 			'is_percent'         => $is_percent,
-			'invalid'            => $invalid,
+			'is_invalid'         => $invalid,
 		);
 
 		$data[] = $args;
