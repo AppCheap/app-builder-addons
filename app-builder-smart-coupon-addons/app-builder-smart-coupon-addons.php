@@ -63,14 +63,16 @@ function app_builder_smart_coupon_list( $request ) {
 			break;
 		}
 
-		$coupon = new WC_Coupon( $code->post_title );
+		$coupon  = new WC_Coupon( $code->post_title );
+		$invalid = false;
 
-		if ( 'woocommerce_before_my_account' !== current_filter() && ! $coupon->is_valid() ) {
+		// Force show coupon like minimum order total
+		if ( 'woocommerce_before_my_account' !== current_filter() && ! $coupon->is_valid() && false ) {
 
 			// Filter to allow third party developers to show coupons which are invalid due to cart requirements like minimum order total or products.
 			$wc_sc_force_show_coupon = apply_filters( 'wc_sc_force_show_invalid_coupon', false, array( 'coupon' => $coupon ) );
 			if ( false === $wc_sc_force_show_coupon ) {
-				continue;
+				$invalid = true;
 			}
 		}
 
@@ -156,7 +158,7 @@ function app_builder_smart_coupon_list( $request ) {
 		$args = array(
 			'coupon_object'      => $coupon,
 			'coupon_amount'      => $coupon_amount,
-			'amount_symbol'      => html_entity_decode(( true === $is_percent ) ? '%' : get_woocommerce_currency_symbol()),
+			'amount_symbol'      => html_entity_decode( ( true === $is_percent ) ? '%' : get_woocommerce_currency_symbol() ),
 			'discount_type'      => wp_strip_all_tags( $coupon_type ),
 			'coupon_description' => ( ! empty( $coupon_description ) ) ? $coupon_description : wp_strip_all_tags( $wc_sc_display_coupons->generate_coupon_description( array( 'coupon_object' => $coupon ) ) ),
 			'coupon_code'        => $coupon_code,
@@ -168,6 +170,7 @@ function app_builder_smart_coupon_list( $request ) {
 			),
 			'classes'            => 'apply_coupons_credits',
 			'is_percent'         => $is_percent,
+			'invalid'            => $invalid,
 		);
 
 		$data[] = $args;
