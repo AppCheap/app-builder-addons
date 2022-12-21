@@ -54,20 +54,58 @@ function app_builder_woocommerce_points_and_rewards_addons_prepare_product_objec
 add_action( 'plugins_loaded', 'app_builder_woocommerce_points_and_rewards_addons_text_domain' );
 add_filter( 'app_builder_prepare_product_object', 'app_builder_woocommerce_points_and_rewards_addons_prepare_product_object', 999, 3 );
 
-/**
- * Generate the message that will be displayed showing how many points the customer will receive for completing their purchase.
- *
- */
-function app_builder_generate_earn_points_message( $request ) {
-	$message = '';
-	if ( class_exists( '\WC_Points_Rewards_Cart_Checkout' ) ) {
-		$wc_point = new \WC_Points_Rewards_Cart_Checkout();
-		$message  = $wc_point->generate_earn_points_message();
+function app_builder_points_rewards_my_points( $request ) {
+
+	if ( ! class_exists( '\WC_Points_Rewards_Manager' ) ) {
+		return new WP_Error(
+			'exist_discount',
+			__( "Plugin not installed.", "app_builder" )
+		);
 	}
 
-	return new WP_REST_Response( [
-		'message' => $message,
-	] );
+	if ( get_current_user_id() == 0 ) {
+		return new WP_Error(
+			'user_logged',
+			__( "User logout.", "app_builder" )
+		);
+	}
+
+	$page     = $request->get_param( 'page' );
+	$per_page = $request->get_param( 'per_page' );
+
+	global $wc_points_rewards;
+
+	$points_balance = \WC_Points_Rewards_Manager::get_users_points( get_current_user_id() );
+	$points_label   = $wc_points_rewards->get_points_label( $points_balance );
+
+	$count        = empty( $per_page ) ? 5 : absint( $per_page );
+	$current_page = empty( $page ) ? 1 : absint( $page );
+
+	// get a set of points events, ordered newest to oldest
+	$args = array(
+		'calc_found_rows' => true,
+		'orderby'         => array(
+			'field' => 'date',
+			'order' => 'DESC',
+		),
+		'per_page'        => $count,
+		'paged'           => $current_page,
+		'user'            => get_current_user_id(),
+	);
+
+	$events     = \WC_Points_Rewards_Points_Log::get_points_log_entries( $args );
+	$total_rows = \WC_Points_Rewards_Points_Log::$found_rows;
+
+	return new WP_REST_Response(
+		[
+			'points_balance' => $points_balance,
+			'points_label'   => $points_label,
+			'events'         => $events,
+			'total_rows'     => $total_rows,
+			'current_page'   => $current_page,
+			'count'          => $count,
+		]
+	);
 }
 
 function app_builder_woocommerce_points_and_rewards_rest_init() {
@@ -75,23 +113,13 @@ function app_builder_woocommerce_points_and_rewards_rest_init() {
 	$namespace = 'app-builder/v1';
 	$route     = 'points-and-rewards';
 
-	register_rest_route( $namespace, $route, array(
-		'methods'             => WP_REST_Server::READABLE,
-		'callback'            => 'app_builder_generate_earn_points_message',
-		'permission_callback' => '__return_true',
-	) );
-
-//	register_rest_route( $namespace, $route . '/make-primary', array(
-//		'methods'             => WP_REST_Server::CREATABLE,
-//		'callback'            => 'app_builder_make_primary_address_books',
-//		'permission_callback' => '__return_true',
-//	) );
-//
-//	register_rest_route( $namespace, $route . '/delete', array(
-//		'methods'             => WP_REST_Server::CREATABLE,
-//		'callback'            => 'app_builder_delete_address_books',
-//		'permission_callback' => '__return_true',
-//	) );
+	register_rest_route( $namespace, $route, [
+		[
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => 'app_builder_points_rewards_my_points',
+			'permission_callback' => '__return_true',
+		],
+	] );
 }
 
 add_action( 'rest_api_init', 'app_builder_woocommerce_points_and_rewards_rest_init' );
