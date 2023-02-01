@@ -64,11 +64,13 @@ function app_builder_smart_coupon_list( $request ) {
 		}
 
 		$coupon  = new WC_Coupon( $code->post_title );
-		$discounts = new \WC_Discounts( WC()->cart );
+		$invalid = false;
 
-		$response = $discounts->is_coupon_valid( $coupon );
-
-		$invalid = ! is_wp_error( $response );
+		// Force show coupon like minimum order total
+		if ( 'woocommerce_before_my_account' !== current_filter() && ! $coupon->is_valid() ) {
+			// Filter to allow third party developers to show coupons which are invalid due to cart requirements like minimum order total or products.
+			apply_filters( 'wc_sc_force_show_invalid_coupon', false, array( 'coupon' => $coupon ) );
+		}
 
 		if ( $wc_sc_display_coupons->is_wc_gte_30() ) {
 			if ( ! is_object( $coupon ) || ! is_callable( array( $coupon, 'get_id' ) ) ) {
