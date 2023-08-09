@@ -57,7 +57,7 @@ function app_builder_woocommerce_store_api_product_quantity_multiple_of( $value,
 
 	$data = B2bking_Dynamic_Rules::b2bking_dynamic_rule_required_multiple_quantity( array(), $product );
 
-	if ( $data['step'] ) {
+	if ( isset($data['step']) && $data['step'] ) {
 		return $data['step'];
 	}
 
