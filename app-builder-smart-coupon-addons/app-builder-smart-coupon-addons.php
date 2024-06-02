@@ -69,7 +69,11 @@ function app_builder_smart_coupon_list( $request ) {
 		// Force show coupon like minimum order total
 		if ( 'woocommerce_before_my_account' !== current_filter() && ! $coupon->is_valid() ) {
 			// Filter to allow third party developers to show coupons which are invalid due to cart requirements like minimum order total or products.
-			apply_filters( 'wc_sc_force_show_invalid_coupon', false, array( 'coupon' => $coupon ) );
+			$wc_sc_force_show_coupon = apply_filters( 'wc_sc_force_show_invalid_coupon', false, array( 'coupon' => $coupon ) );
+
+            if ( false === $wc_sc_force_show_coupon ) {
+                continue;
+            }
 		}
 
 		if ( $wc_sc_display_coupons->is_wc_gte_30() ) {
