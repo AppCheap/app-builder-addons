@@ -306,7 +306,9 @@ function create_refund_request($request)
 
 function register_wcfm_refund_endpoints()
 {
-	register_rest_route('wcfm/v1', '/refund-request', array(
+    $namespace = 'app-builder/v1';
+
+	register_rest_route($namespace, '/refund-request', array(
 		'methods' => WP_REST_Server::CREATABLE,
 		'callback' => 'create_refund_request',
 		'permission_callback' => function () {
